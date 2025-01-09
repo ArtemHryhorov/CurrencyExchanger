@@ -11,10 +11,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CurrencyExchanger"
+        android:name=".CurrencyExchangerApp"
         tools:targetApi="31">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.CurrencyExchanger">
             <intent-filter>
