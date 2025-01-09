@@ -1,4 +1,4 @@
-package com.currency.exchanger.ui.core.composable
+package com.currency.exchanger.ui.convertor.composable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

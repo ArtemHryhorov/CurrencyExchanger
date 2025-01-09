@@ -2,4 +2,7 @@
     <string name="app_name">Currency-Exchanger</string>
     <string name="currency_convertor">Currency convertor</string>
     <string name="my_balances">My balances</string>
+    <string name="currency_exchange">Currency exchange</string>
+    <string name="sell">Sell</string>
+    <string name="receive">Receive</string>
 </resources>
