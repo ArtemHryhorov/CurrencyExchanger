@@ -1,0 +1,40 @@
+# Android-specific
+*.iml
+.gradle/
+build/
+local.properties
+.idea/
+.DS_Store
+
+# Keystore files
+*.jks
+*.keystore
+
+# Gradle-specific
+*.jar
+*.war
+*.ear
+.gradle/caches/
+.gradle/gradle.properties
+.gradle/gradle-wrapper.properties
+
+# Crashlytics and Fabric
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+
+# Other Android-specific files
+*.apk
+*.ap_
+*.dex
+*.class
+*.so
+*.pdb
+*.o
+*.ko
+
+# Logs
+*.log
+
+# Mobile tooling
+*.xcuserstate
