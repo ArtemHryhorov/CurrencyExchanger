@@ -2,13 +2,33 @@ package com.currency.exchanger.ui.convertor.composable
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.currency.exchanger.domain.CurrencyBalance
+import androidx.compose.ui.tooling.preview.Preview
+import com.currency.exchanger.domain.model.Currency
+import com.currency.exchanger.domain.model.CurrencyBalance
 import com.currency.exchanger.ui.theme.Color
+import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 
 @Composable
-fun CurrencyBalanceItemC(item: CurrencyBalance) {
+fun CurrencyBalanceItem(item: CurrencyBalance) {
     Text(
         text = item.convertedUiBalance(),
         color = Color.TextOnSurface,
     )
+}
+
+@Preview
+@Composable
+fun CurrencyBalanceItemPreview() {
+    CurrencyExchangerTheme {
+        CurrencyBalanceItem(
+            item = CurrencyBalance(
+                amount = 100.0,
+                currency = Currency(
+                    name = "EUR",
+                    rateToBase = 1.0,
+                    baseCurrencyName = "EUR",
+                ),
+            ),
+        )
+    }
 }
