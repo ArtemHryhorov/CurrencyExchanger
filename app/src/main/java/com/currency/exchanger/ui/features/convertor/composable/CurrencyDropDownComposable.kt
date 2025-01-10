@@ -1,4 +1,4 @@
-package com.currency.exchanger.ui.convertor.composable
+package com.currency.exchanger.ui.features.convertor.composable
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.currency.exchanger.R
 import com.currency.exchanger.domain.model.Currency
+import com.currency.exchanger.ui.common.ValidationError
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 
 private enum class CurrencyOperationType {
@@ -30,6 +31,7 @@ fun SellCurrencyDropDown(
     currency: Currency,
     amount: String?,
     currencies: List<Currency>,
+    error: ValidationError? = null,
     onCurrencySelected: (Currency) -> Unit,
     onAmountChanged: (String) -> Unit,
 ) {
@@ -39,6 +41,7 @@ fun SellCurrencyDropDown(
         amount = amount,
         currencyOperationType = CurrencyOperationType.SELL,
         currencies = currencies,
+        error = error,
         onCurrencySelected = onCurrencySelected,
         onAmountChanged = onAmountChanged,
     )
@@ -50,6 +53,7 @@ fun ReceiveCurrencyDropDown(
     currency: Currency,
     amount: String?,
     currencies: List<Currency>,
+    error: ValidationError? = null,
     onCurrencySelected: (Currency) -> Unit,
     onAmountChanged: (String) -> Unit,
 ) {
@@ -59,6 +63,7 @@ fun ReceiveCurrencyDropDown(
         amount = amount,
         currencyOperationType = CurrencyOperationType.RECEIVE,
         currencies = currencies,
+        error = error,
         onCurrencySelected = onCurrencySelected,
         onAmountChanged = onAmountChanged,
     )
@@ -71,6 +76,7 @@ private fun CurrencyDropDown(
     amount: String?,
     currencyOperationType: CurrencyOperationType,
     currencies: List<Currency>,
+    error: ValidationError? = null,
     onCurrencySelected: (Currency) -> Unit,
     onAmountChanged: (String) -> Unit,
 ) {
@@ -107,6 +113,8 @@ private fun CurrencyDropDown(
                     .weight(1f)
                     .padding(start = 8.dp),
                 value = amount ?: "",
+                isFocusedInitially = true,
+                error = error,
                 onChanged = onAmountChanged,
             )
         } else {
@@ -116,6 +124,7 @@ private fun CurrencyDropDown(
                     .weight(1f)
                     .padding(start = 8.dp),
                 value = amount ?: "",
+                error = error,
                 onChanged = onAmountChanged,
             )
         }

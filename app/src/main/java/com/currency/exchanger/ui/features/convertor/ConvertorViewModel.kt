@@ -1,10 +1,12 @@
-package com.currency.exchanger.ui.convertor
+package com.currency.exchanger.ui.features.convertor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.currency.exchanger.domain.common.extensions.isValidAmount
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.UserBalance
 import com.currency.exchanger.domain.usecase.GetAllCurrencyUseCase
+import com.currency.exchanger.ui.common.ValidationError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,8 +71,14 @@ class ConvertorViewModel @Inject constructor(
     }
 
     private fun onSellAmountChanged(amount: String) {
+        val isNewAmountValid = amount.isValidAmount
         _convertorState.update { convertorState ->
-            convertorState.copy(currencyForSaleAmount = amount)
+            convertorState.copy(
+                currencyForSaleAmount = amount,
+                currencyForSaleError = if (isNewAmountValid.not()) {
+                    ValidationError.INCORRECT_AMOUNT
+                } else null
+            )
         }
     }
 }

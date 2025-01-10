@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import com.currency.exchanger.ui.convertor.ConvertorScreen
-import com.currency.exchanger.ui.convertor.ConvertorViewModel
+import com.currency.exchanger.ui.features.convertor.ConvertorScreen
+import com.currency.exchanger.ui.features.convertor.ConvertorViewModel
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
