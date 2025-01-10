@@ -7,7 +7,7 @@ data class ConvertorState(
     val userBalance: UserBalance = UserBalance(currencyBalanceList = emptyList()),
     val allCurrencies: List<Currency> = emptyList(),
     val currencyForSale: Currency? = null,
-    val currencyForSaleAmount: Double = 0.0,
+    val currencyForSaleAmount: String? = null,
     val currencyToReceive: Currency? = null,
-    val currencyToReceiveAmount: Double = 0.0,
+    val currencyToReceiveAmount: String? = null,
 )

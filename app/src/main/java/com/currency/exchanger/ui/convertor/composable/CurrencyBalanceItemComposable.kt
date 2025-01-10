@@ -1,18 +1,18 @@
 package com.currency.exchanger.ui.convertor.composable
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.CurrencyBalance
-import com.currency.exchanger.ui.theme.Color
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 
 @Composable
 fun CurrencyBalanceItem(item: CurrencyBalance) {
     Text(
         text = item.convertedUiBalance(),
-        color = Color.TextOnSurface,
+        color = MaterialTheme.colorScheme.onSurface,
     )
 }
 
