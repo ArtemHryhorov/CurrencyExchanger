@@ -1,10 +1,16 @@
 package com.currency.exchanger.ui.convertor
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,11 +21,10 @@ import androidx.compose.ui.unit.dp
 import com.currency.exchanger.R
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.UserBalance
-import com.currency.exchanger.ui.convertor.composable.ReceiveCurrencyDropDown
 import com.currency.exchanger.ui.convertor.composable.CurrencyBalanceList
+import com.currency.exchanger.ui.convertor.composable.ReceiveCurrencyDropDown
 import com.currency.exchanger.ui.convertor.composable.SellCurrencyDropDown
 import com.currency.exchanger.ui.convertor.composable.TabBar
-import com.currency.exchanger.ui.theme.Color
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 
 @Composable
@@ -32,7 +37,11 @@ fun ConvertorScreen(
         onEvent(ConvertorEvent.LoadUserBalance)
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .imePadding(),
+    ) {
         TabBar(
             title = stringResource(R.string.currency_convertor),
             modifier = Modifier.fillMaxWidth(),
@@ -40,7 +49,7 @@ fun ConvertorScreen(
         Column(modifier = Modifier.padding(all = 16.dp)) {
             Text(
                 text = stringResource(R.string.my_balances).uppercase(),
-                color = Color.TextSecondary,
+                color = MaterialTheme.colorScheme.secondary,
             )
             CurrencyBalanceList(
                 items = state.userBalance.currencyBalanceList,
@@ -50,7 +59,7 @@ fun ConvertorScreen(
             )
             Text(
                 text = stringResource(R.string.currency_exchange).uppercase(),
-                color = Color.TextSecondary,
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 16.dp),
             )
             state.currencyForSale?.let { currencyForSale ->
@@ -61,9 +70,12 @@ fun ConvertorScreen(
                     currency = currencyForSale,
                     amount = state.currencyForSaleAmount,
                     currencies = state.allCurrencies,
-                    onSelected = { currency ->
+                    onCurrencySelected = { currency ->
                         onEvent(ConvertorEvent.OnSellCurrencySelected(currency))
                     },
+                    onAmountChanged = { amount ->
+                        onEvent(ConvertorEvent.OnSellAmountChanged(amount))
+                    }
                 )
             }
             HorizontalDivider(
@@ -75,11 +87,33 @@ fun ConvertorScreen(
                 ReceiveCurrencyDropDown(
                     modifier = Modifier.fillMaxWidth(),
                     currency = currencyToReceive,
-                    amount = state.currencyForSaleAmount,
+                    amount = state.currencyToReceiveAmount,
                     currencies = state.allCurrencies,
-                    onSelected = { currency ->
+                    onCurrencySelected = { currency ->
                         onEvent(ConvertorEvent.OnReceiveCurrencySelected(currency))
                     },
+                    onAmountChanged = { amount ->
+                        onEvent(ConvertorEvent.OnReceiveAmountChanged(amount))
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(size = 24.dp),
+                    ),
+                onClick = {
+
+                }
+            ) {
+                Text(
+                    text = stringResource(R.string.submit).uppercase(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.padding(all = 4.dp),
                 )
             }
         }
@@ -94,11 +128,17 @@ fun ConvertorScreenPreview() {
             state = ConvertorState(
                 userBalance = UserBalance.createNew(),
                 currencyForSale = Currency(
+                    name = "EUR",
+                    rateToBase = 1.0,
+                    baseCurrencyName = "EUR"
+                ),
+                currencyToReceive = Currency(
                     name = "USD",
                     rateToBase = 1.1,
                     baseCurrencyName = "EUR"
                 ),
-                currencyForSaleAmount = 150.0,
+                currencyForSaleAmount = "150.00",
+                currencyToReceiveAmount = "160.00",
             ),
             onEvent = {},
         )

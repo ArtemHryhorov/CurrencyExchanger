@@ -18,14 +18,17 @@ class ConvertorViewModel @Inject constructor(
     private val getAllCurrencyUseCase: GetAllCurrencyUseCase,
 ) : ViewModel() {
 
-    private val _convertorState: MutableStateFlow<ConvertorState> = MutableStateFlow(ConvertorState())
+    private val _convertorState = MutableStateFlow(ConvertorState())
     val convertorState = _convertorState.asStateFlow()
 
     fun onEvent(event: ConvertorEvent) {
         when (event) {
             ConvertorEvent.LoadUserBalance -> loadUserBalance()
+            ConvertorEvent.Submit -> convertCurrencies()
             is ConvertorEvent.OnReceiveCurrencySelected -> onReceiveCurrencySelected(event.currency)
+            is ConvertorEvent.OnReceiveAmountChanged -> onReceiveAmountChanged(event.amount)
             is ConvertorEvent.OnSellCurrencySelected -> onSellCurrencySelected(event.currency)
+            is ConvertorEvent.OnSellAmountChanged ->onSellAmountChanged(event.amount)
         }
     }
 
@@ -43,15 +46,31 @@ class ConvertorViewModel @Inject constructor(
         }
     }
 
+    private fun convertCurrencies() {
+
+    }
+
     private fun onReceiveCurrencySelected(currency: Currency) {
         _convertorState.update { convertorState ->
             convertorState.copy(currencyToReceive = currency)
         }
     }
 
+    private fun onReceiveAmountChanged(amount: String) {
+        _convertorState.update { convertorState ->
+            convertorState.copy(currencyToReceiveAmount = amount)
+        }
+    }
+
     private fun onSellCurrencySelected(currency: Currency) {
         _convertorState.update { convertorState ->
             convertorState.copy(currencyForSale = currency)
+        }
+    }
+
+    private fun onSellAmountChanged(amount: String) {
+        _convertorState.update { convertorState ->
+            convertorState.copy(currencyForSaleAmount = amount)
         }
     }
 }
