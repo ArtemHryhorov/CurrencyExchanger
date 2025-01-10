@@ -1,9 +1,16 @@
 <resources>
+    <!-- General -->
     <string name="app_name">Currency-Exchanger</string>
+
+    <!-- Currency convertor -->
     <string name="currency_convertor">Currency convertor</string>
     <string name="my_balances">My balances</string>
     <string name="currency_exchange">Currency exchange</string>
     <string name="sell">Sell</string>
     <string name="receive">Receive</string>
     <string name="submit">Submit</string>
+
+    <!-- Errors -->
+    <string name="insufficient_balance_error">Insufficient balance</string>
+    <string name="incorrect_amount_error">Incorrect amount</string>
 </resources>

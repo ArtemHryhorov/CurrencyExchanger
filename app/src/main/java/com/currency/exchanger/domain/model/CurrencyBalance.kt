@@ -1,6 +1,6 @@
 package com.currency.exchanger.domain.model
 
-import com.currency.exchanger.domain.extensions.formatAmountWithDecimals
+import com.currency.exchanger.domain.common.extensions.formatAmountWithDecimals
 
 data class CurrencyBalance(
     val amount: Double,

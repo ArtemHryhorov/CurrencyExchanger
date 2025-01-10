@@ -7,17 +7,19 @@ import androidx.compose.ui.graphics.Color
 
 private object AppColor {
     val Primary = Color(0xFF009cdd)
-    val TextPrimary = Color(0xFFFFFFFF)
-    val TextSecondary = Color(0xFFa0a6ae)
-    val TextOnSurface = Color(0xFF000000)
+    val OnPrimary = Color(0xFFFFFFFF)
+    val OnSecondary = Color(0xFFa0a6ae)
+    val OnSurface = Color(0xFF000000)
+    val SurfaceVariant = Color(0xFF808080)
 }
 
 // Add support of the dark theme if needed
 private val LightColorScheme = lightColorScheme(
     primary = AppColor.Primary,
-    onPrimary = AppColor.TextPrimary,
-    onSecondary = AppColor.TextSecondary,
-    onSurface = AppColor.TextOnSurface,
+    onPrimary = AppColor.OnPrimary,
+    onSecondary = AppColor.OnSecondary,
+    onSurface = AppColor.OnSurface,
+    surfaceVariant = AppColor.SurfaceVariant
 )
 
 @Composable

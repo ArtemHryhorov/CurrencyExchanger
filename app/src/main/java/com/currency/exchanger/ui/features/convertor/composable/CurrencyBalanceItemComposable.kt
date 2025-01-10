@@ -1,4 +1,4 @@
-package com.currency.exchanger.ui.convertor.composable
+package com.currency.exchanger.ui.features.convertor.composable
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text

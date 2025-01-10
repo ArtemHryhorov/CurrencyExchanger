@@ -1,14 +1,11 @@
-package com.currency.exchanger.ui.convertor
+package com.currency.exchanger.ui.features.convertor
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,10 +18,11 @@ import androidx.compose.ui.unit.dp
 import com.currency.exchanger.R
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.UserBalance
-import com.currency.exchanger.ui.convertor.composable.CurrencyBalanceList
-import com.currency.exchanger.ui.convertor.composable.ReceiveCurrencyDropDown
-import com.currency.exchanger.ui.convertor.composable.SellCurrencyDropDown
-import com.currency.exchanger.ui.convertor.composable.TabBar
+import com.currency.exchanger.ui.common.composable.PrimaryButton
+import com.currency.exchanger.ui.common.composable.TabBar
+import com.currency.exchanger.ui.features.convertor.composable.CurrencyBalanceList
+import com.currency.exchanger.ui.features.convertor.composable.ReceiveCurrencyDropDown
+import com.currency.exchanger.ui.features.convertor.composable.SellCurrencyDropDown
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 
 @Composable
@@ -70,6 +68,7 @@ fun ConvertorScreen(
                     currency = currencyForSale,
                     amount = state.currencyForSaleAmount,
                     currencies = state.allCurrencies,
+                    error = state.currencyForSaleError,
                     onCurrencySelected = { currency ->
                         onEvent(ConvertorEvent.OnSellCurrencySelected(currency))
                     },
@@ -89,6 +88,7 @@ fun ConvertorScreen(
                     currency = currencyToReceive,
                     amount = state.currencyToReceiveAmount,
                     currencies = state.allCurrencies,
+                    error = state.currencyToReceiveError,
                     onCurrencySelected = { currency ->
                         onEvent(ConvertorEvent.OnReceiveCurrencySelected(currency))
                     },
@@ -98,24 +98,14 @@ fun ConvertorScreen(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            Button(
+            PrimaryButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(size = 24.dp),
-                    ),
-                onClick = {
-
-                }
-            ) {
-                Text(
-                    text = stringResource(R.string.submit).uppercase(),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.padding(all = 4.dp),
-                )
-            }
+                    .padding(horizontal = 16.dp),
+                isEnabled = state.isValidToSubmit,
+                text = stringResource(R.string.submit).uppercase(),
+                onClick = { onEvent(ConvertorEvent.Submit) }
+            )
         }
     }
 }

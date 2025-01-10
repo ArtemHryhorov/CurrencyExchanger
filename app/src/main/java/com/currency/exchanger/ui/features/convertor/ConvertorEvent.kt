@@ -1,4 +1,4 @@
-package com.currency.exchanger.ui.convertor
+package com.currency.exchanger.ui.features.convertor
 
 import com.currency.exchanger.domain.model.Currency
 
