@@ -7,4 +7,4 @@ fun Double.formatAmountWithDecimals(decimalPlaces: Int): String {
 }
 
 val String.isValidAmount: Boolean
-    get() = this.toDoubleOrNull() != null
+    get() = this.toDoubleOrNull() != null && this.toDouble() > 0.0

@@ -2,11 +2,12 @@ package com.currency.exchanger.ui.features.convertor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.currency.exchanger.domain.common.convertor.CurrencyConvertor
 import com.currency.exchanger.domain.common.extensions.isValidAmount
 import com.currency.exchanger.domain.model.Currency
-import com.currency.exchanger.domain.model.UserBalance
+import com.currency.exchanger.domain.usecase.CalculateConversionUseCase
 import com.currency.exchanger.domain.usecase.GetAllCurrencyUseCase
+import com.currency.exchanger.domain.usecase.GetUserBalanceUseCase
+import com.currency.exchanger.domain.usecase.PerformTransactionUseCase
 import com.currency.exchanger.ui.common.ValidationError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ConvertorViewModel @Inject constructor(
     private val getAllCurrencyUseCase: GetAllCurrencyUseCase,
-    private val currencyConvertor: CurrencyConvertor,
+    private val getUserBalanceUseCase: GetUserBalanceUseCase,
+    private val calculateConversionUseCase: CalculateConversionUseCase,
+    private val performTransactionUseCase: PerformTransactionUseCase,
 ) : ViewModel() {
 
     private val _convertorState = MutableStateFlow(ConvertorState())
@@ -27,7 +30,7 @@ class ConvertorViewModel @Inject constructor(
 
     fun onEvent(event: ConvertorEvent) {
         when (event) {
-            ConvertorEvent.LoadUserBalance -> loadUserBalance()
+            ConvertorEvent.InitialDataLoading -> initialDataLoading()
             ConvertorEvent.Submit -> performCurrenciesConversion()
             is ConvertorEvent.OnReceiveCurrencySelected -> onReceiveCurrencySelected(event.currency)
             is ConvertorEvent.OnSellCurrencySelected -> onSellCurrencySelected(event.currency)
@@ -35,14 +38,14 @@ class ConvertorViewModel @Inject constructor(
         }
     }
 
-    private fun loadUserBalance() {
+    private fun initialDataLoading() {
         viewModelScope.launch(Dispatchers.IO) {
             val allCurrencies = getAllCurrencyUseCase()
             _convertorState.update { convertorState ->
                 convertorState.copy(
-                    userBalance = UserBalance.createNew(),
+                    userBalance = getUserBalanceUseCase(),
                     currencyForSale = allCurrencies.first(),
-                    currencyToReceive = allCurrencies.last(),
+                    currencyToReceive = allCurrencies[1],
                     allCurrencies = allCurrencies,
                 )
             }
@@ -50,18 +53,40 @@ class ConvertorViewModel @Inject constructor(
     }
 
     private fun performCurrenciesConversion() {
-
+        viewModelScope.launch(Dispatchers.IO) {
+            _convertorState.update { state ->
+                val updatedUserBalance = with(state) {
+                    performTransactionUseCase(
+                        userBalance = userBalance,
+                        sellCurrency = currencyForSale ?: return@launch,
+                        sellAmount = currencyForSaleAmount?.toDoubleOrNull() ?: return@launch,
+                        receiveCurrency = currencyToReceive ?: return@launch,
+                        receiveAmount = currencyToReceiveAmount ?: return@launch,
+                        fee = fee,
+                    )
+                }
+                state.copy(
+                    userBalance = updatedUserBalance,
+                    currencyForSaleAmount = null,
+                    currencyToReceiveAmount = null,
+                )
+            }
+        }
     }
 
     private fun onReceiveCurrencySelected(currency: Currency) {
         _convertorState.update { state ->
+            val isReceiveAmountEmpty =
+                state.currencyToReceiveAmount != null && state.currencyToReceiveAmount > 0.0
             state.copy(
                 currencyToReceive = currency,
-                currencyToReceiveAmount = currencyConvertor.convertCurrencies(
-                    amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0,
-                    fromCurrency = state.currencyForSale ?: return,
-                    toCurrency = currency,
-                ),
+                currencyToReceiveAmount = if (isReceiveAmountEmpty) {
+                    calculateConversionUseCase(
+                        amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0,
+                        fromCurrency = state.currencyForSale ?: return,
+                        toCurrency = currency,
+                    )
+                } else state.currencyToReceiveAmount,
             )
         }
     }
@@ -77,7 +102,7 @@ class ConvertorViewModel @Inject constructor(
                     .find { it.currency == currency }
                 val saleAmount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0
                 val isEnoughMoney = currencyBalance?.amount?.let { it >= saleAmount } ?: false
-                if (isEnoughMoney.not()) {
+                if (isEnoughMoney.not() && saleAmount != 0.0) {
                     state.copy(
                         currencyForSale = currency,
                         currencyForSaleError = ValidationError.INSUFFICIENT_BALANCE
@@ -85,11 +110,13 @@ class ConvertorViewModel @Inject constructor(
                 } else {
                     state.copy(
                         currencyForSale = currency,
-                        currencyToReceiveAmount = currencyConvertor.convertCurrencies(
-                            amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0,
-                            fromCurrency = currency,
-                            toCurrency = state.currencyToReceive ?: return,
-                        ),
+                        currencyToReceiveAmount = if (saleAmount != 0.0) {
+                            calculateConversionUseCase(
+                                amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0,
+                                fromCurrency = currency,
+                                toCurrency = state.currencyToReceive ?: return,
+                            )
+                        } else state.currencyToReceiveAmount,
                     )
                 }
             }
@@ -122,7 +149,7 @@ class ConvertorViewModel @Inject constructor(
                     state.copy(
                         currencyForSaleAmount = amount,
                         currencyForSaleError = null,
-                        currencyToReceiveAmount = currencyConvertor.convertCurrencies(
+                        currencyToReceiveAmount = calculateConversionUseCase(
                             amount = amount.toDouble(),
                             fromCurrency = state.currencyForSale ?: return,
                             toCurrency = state.currencyToReceive ?: return,
