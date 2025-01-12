@@ -24,7 +24,7 @@ class PerformTransactionUseCase @Inject constructor(
         receiveCurrency: Currency,
         receiveAmount: Double,
         fee: Double,
-    ): UserBalance {
+    ): Result<UserBalance> = try {
         val updatedSellCurrencyBalance = transferCurrencyFromWallet(
             userBalance = userBalance,
             sellCurrency = sellCurrency,
@@ -36,12 +36,15 @@ class PerformTransactionUseCase @Inject constructor(
             receiveAmount = receiveAmount,
         )
 
-        return updateUserBalance(
+        val updatedBalance = updateUserBalance(
             userBalance = userBalance,
             updatedSellCurrencyBalance = updatedSellCurrencyBalance,
             updatedReceiveCurrencyBalance = updatedReceiveCurrencyBalance,
             fee = fee,
         )
+        Result.success(updatedBalance)
+    } catch (error: Throwable) {
+        Result.failure(error)
     }
 
     private fun transferCurrencyFromWallet(

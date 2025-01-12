@@ -9,12 +9,15 @@ import javax.inject.Inject
 class GetUserBalanceUseCase @Inject constructor(
     private val userBalanceDao: UserBalanceDao,
 ) {
-    suspend operator fun invoke(): UserBalance {
-        return userBalanceDao.getUserBalance()?.toDomain() ?: run {
+    suspend operator fun invoke(): Result<UserBalance> = try {
+        val userBalance = userBalanceDao.getUserBalance()?.toDomain() ?: run {
             // Create new user balance and save to DB if it's empty
             val newUserBalance = UserBalance.createNew()
             userBalanceDao.insertUserBalance(newUserBalance.toEntity())
             newUserBalance
         }
+        Result.success(userBalance)
+    } catch (error: Throwable) {
+        Result.failure(error)
     }
 }
