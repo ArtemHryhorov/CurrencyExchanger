@@ -34,8 +34,9 @@ class CalculateConversionUseCase @Inject constructor(
     ): ConversionResult {
         val convertedAmount = (toCurrency.rateToBase / fromCurrency.rateToBase) * amount
         val shouldFeeBeApplied = preferencesManager.getCompletedTransactions() > 5
-        val fee =
-            if (shouldFeeBeApplied) amount * (AppConstants.TRANSACTION_FEE_PERCENT / 100) else 0.0
+        val fee = if (shouldFeeBeApplied) {
+            amount * (AppConstants.TRANSACTION_FEE_PERCENT / 100)
+        } else 0.0
         return ConversionResult(
             toReceive = convertedAmount - fee,
             fee = fee

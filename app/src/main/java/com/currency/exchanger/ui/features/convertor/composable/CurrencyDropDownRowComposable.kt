@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.currency.exchanger.R
 import com.currency.exchanger.domain.common.extensions.formatAmountWithDecimals
 import com.currency.exchanger.domain.model.Currency
-import com.currency.exchanger.ui.common.ValidationError
+import com.currency.exchanger.ui.features.convertor.validation.ValidationError
 import com.currency.exchanger.ui.theme.AppColor
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 

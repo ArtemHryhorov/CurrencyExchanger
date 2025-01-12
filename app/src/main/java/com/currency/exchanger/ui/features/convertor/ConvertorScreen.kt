@@ -25,6 +25,7 @@ import com.currency.exchanger.R
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.CurrencyBalance
 import com.currency.exchanger.domain.model.UserBalance
+import com.currency.exchanger.ui.common.composable.ErrorDialog
 import com.currency.exchanger.ui.common.composable.PrimaryButton
 import com.currency.exchanger.ui.common.composable.TabBar
 import com.currency.exchanger.ui.features.convertor.composable.ConversionCompletedDialog
@@ -62,6 +63,9 @@ fun ConvertorScreen(
             onEvent(ConvertorEvent.ConversionCompleted)
         }
     }
+    state.error?.let {
+        ErrorDialog(errorType = it) { onEvent(ConvertorEvent.DismissError) }
+    }
 
     Column(
         modifier = modifier
@@ -96,7 +100,7 @@ fun ConvertorScreen(
                     currency = currencyForSale,
                     amount = state.currencyForSaleAmount,
                     currencies = state.allCurrencies,
-                    error = state.currencyForSaleError,
+                    error = state.currencyForSaleValidationError,
                     onCurrencySelected = { currency ->
                         onEvent(ConvertorEvent.OnSellCurrencySelected(currency))
                     },

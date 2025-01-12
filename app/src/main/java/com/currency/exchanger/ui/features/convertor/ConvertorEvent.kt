@@ -10,4 +10,5 @@ sealed interface ConvertorEvent {
     data class OnReceiveCurrencySelected(val currency: Currency) : ConvertorEvent
     data class OnSellCurrencySelected(val currency: Currency) : ConvertorEvent
     data class OnSellAmountChanged(val amount: String) : ConvertorEvent
+    data object DismissError : ConvertorEvent
 }

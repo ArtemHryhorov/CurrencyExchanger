@@ -5,14 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.currency.exchanger.AppConstants
 import com.currency.exchanger.domain.common.extensions.isValidAmount
+import com.currency.exchanger.domain.exception.NoInternetConnectionException
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.CurrencyBalance
 import com.currency.exchanger.domain.usecase.CalculateConversionUseCase
 import com.currency.exchanger.domain.usecase.GetAllCurrencyUseCase
 import com.currency.exchanger.domain.usecase.GetUserBalanceUseCase
 import com.currency.exchanger.domain.usecase.PerformTransactionUseCase
-import com.currency.exchanger.ui.common.ValidationError
+import com.currency.exchanger.ui.common.error.ErrorType
 import com.currency.exchanger.ui.features.convertor.model.ConversionCompleted
+import com.currency.exchanger.ui.features.convertor.validation.ValidationError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +38,7 @@ class ConvertorViewModel @Inject constructor(
     val convertorState = _convertorState.asStateFlow()
 
     private var syncCurrenciesJob: Job? = null
-    private val coroutineExceptionHandler = CoroutineExceptionHandler{_, throwable ->
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         throwable.printStackTrace()
     }
 
@@ -54,14 +56,20 @@ class ConvertorViewModel @Inject constructor(
             is ConvertorEvent.OnReceiveCurrencySelected -> onReceiveCurrencySelected(event.currency)
             is ConvertorEvent.OnSellCurrencySelected -> onSellCurrencySelected(event.currency)
             is ConvertorEvent.OnSellAmountChanged -> onSellAmountChanged(event.amount)
+            ConvertorEvent.DismissError -> dismissError()
         }
     }
 
     private fun loadUserBalance() {
         viewModelScope.launch(Dispatchers.IO + coroutineExceptionHandler) {
-            _convertorState.update { convertorState ->
-                convertorState.copy(userBalance = getUserBalanceUseCase())
-            }
+            getUserBalanceUseCase().fold(
+                onSuccess = { userBalance ->
+                    _convertorState.update { convertorState ->
+                        convertorState.copy(userBalance = userBalance)
+                    }
+                },
+                onFailure = { handleError(it) }
+            )
         }
     }
 
@@ -69,17 +77,21 @@ class ConvertorViewModel @Inject constructor(
         if (syncCurrenciesJob?.isActive == true) return
         syncCurrenciesJob = viewModelScope.launch(Dispatchers.IO + coroutineExceptionHandler) {
             while (true) {
-                val allCurrencies = getAllCurrencyUseCase()
-                Log.d("Convertor", "Currencies synchronized. Amount: ${allCurrencies.size}")
-                _convertorState.update { state ->
-                    if (state.currencyForSale == null && state.currencyToReceive == null) {
-                        setInitialCurrencies(allCurrencies)
-                    }
-                    state.copy(
-                        allCurrencies = allCurrencies,
-                        isLoading = false,
-                    )
-                }
+                getAllCurrencyUseCase().fold(
+                    onSuccess = { allCurrencies ->
+                        Log.d("Convertor", "Currencies synchronized. Amount: ${allCurrencies.size}")
+                        _convertorState.update { state ->
+                            if (state.currencyForSale == null && state.currencyToReceive == null) {
+                                setInitialCurrencies(allCurrencies)
+                            }
+                            state.copy(
+                                allCurrencies = allCurrencies,
+                                isLoading = false,
+                            )
+                        }
+                    },
+                    onFailure = { handleError(it) }
+                )
                 delay(AppConstants.CURRENCIES_SYNC_DELAY)
             }
         }
@@ -100,35 +112,40 @@ class ConvertorViewModel @Inject constructor(
 
     private fun performCurrenciesConversion() {
         viewModelScope.launch(Dispatchers.IO) {
-            _convertorState.update { state ->
-                val updatedUserBalance = with(state) {
-                    performTransactionUseCase(
-                        userBalance = userBalance,
-                        sellCurrency = currencyForSale ?: return@launch,
-                        sellAmount = currencyForSaleAmount?.toDoubleOrNull() ?: return@launch,
-                        receiveCurrency = currencyToReceive ?: return@launch,
-                        receiveAmount = currencyToReceiveAmount ?: return@launch,
-                        fee = fee,
-                    )
-                }
-                state.copy(
-                    userBalance = updatedUserBalance,
-                    conversionCompleted = ConversionCompleted(
-                        sellCurrencyBalance = CurrencyBalance(
-                            amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: return@launch,
-                            currency = state.currencyForSale ?: return@launch,
-                        ),
-                        receiveCurrencyBalance = CurrencyBalance(
-                            amount = state.currencyToReceiveAmount ?: return@launch,
-                            currency = state.currencyToReceive ?: return@launch,
-                        ),
-                        fee = CurrencyBalance(
-                            amount = state.fee,
-                            currency = state.currencyForSale,
-                        ),
-                    ),
+            val updatedUserBalanceResult = with(_convertorState.value) {
+                performTransactionUseCase(
+                    userBalance = userBalance,
+                    sellCurrency = currencyForSale ?: return@launch,
+                    sellAmount = currencyForSaleAmount?.toDoubleOrNull() ?: return@launch,
+                    receiveCurrency = currencyToReceive ?: return@launch,
+                    receiveAmount = currencyToReceiveAmount ?: return@launch,
+                    fee = fee,
                 )
             }
+            updatedUserBalanceResult.fold(
+                onSuccess = { updatedUserBalance ->
+                    _convertorState.update { state ->
+                        state.copy(
+                            userBalance = updatedUserBalance,
+                            conversionCompleted = ConversionCompleted(
+                                sellCurrencyBalance = CurrencyBalance(
+                                    amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: return@launch,
+                                    currency = state.currencyForSale ?: return@launch,
+                                ),
+                                receiveCurrencyBalance = CurrencyBalance(
+                                    amount = state.currencyToReceiveAmount ?: return@launch,
+                                    currency = state.currencyToReceive ?: return@launch,
+                                ),
+                                fee = CurrencyBalance(
+                                    amount = state.fee,
+                                    currency = state.currencyForSale,
+                                ),
+                            ),
+                        )
+                    }
+                },
+                onFailure = { handleError(it) }
+            )
         }
     }
 
@@ -163,7 +180,7 @@ class ConvertorViewModel @Inject constructor(
 
     private fun onSellCurrencySelected(currency: Currency) {
         _convertorState.update { state ->
-            if (state.currencyForSaleError == ValidationError.INCORRECT_AMOUNT) {
+            if (state.currencyForSaleValidationError == ValidationError.INCORRECT_AMOUNT) {
                 state.copy(currencyForSale = currency)
             } else {
                 val currencyBalance = state
@@ -175,7 +192,7 @@ class ConvertorViewModel @Inject constructor(
                 if (isEnoughMoney.not() && saleAmount != 0.0) {
                     state.copy(
                         currencyForSale = currency,
-                        currencyForSaleError = ValidationError.INSUFFICIENT_BALANCE
+                        currencyForSaleValidationError = ValidationError.INSUFFICIENT_BALANCE
                     )
                 } else {
                     val conversionResult = calculateConversionUseCase(
@@ -188,7 +205,7 @@ class ConvertorViewModel @Inject constructor(
                         currencyToReceiveAmount = if (saleAmount != 0.0) {
                             conversionResult.fee
                         } else state.currencyToReceiveAmount,
-                        currencyForSaleError = null,
+                        currencyForSaleValidationError = null,
                         fee = conversionResult.fee
                     )
                 }
@@ -202,7 +219,7 @@ class ConvertorViewModel @Inject constructor(
             if (isNewAmountValid.not()) {
                 state.copy(
                     currencyForSaleAmount = amount,
-                    currencyForSaleError = ValidationError.INCORRECT_AMOUNT,
+                    currencyForSaleValidationError = ValidationError.INCORRECT_AMOUNT,
                     currencyToReceiveAmount = null,
                 )
             } else {
@@ -215,7 +232,7 @@ class ConvertorViewModel @Inject constructor(
                 if (isEnoughMoney.not()) {
                     state.copy(
                         currencyForSaleAmount = amount,
-                        currencyForSaleError = ValidationError.INSUFFICIENT_BALANCE,
+                        currencyForSaleValidationError = ValidationError.INSUFFICIENT_BALANCE,
                         currencyToReceiveAmount = null,
                     )
                 } else {
@@ -226,12 +243,31 @@ class ConvertorViewModel @Inject constructor(
                     )
                     state.copy(
                         currencyForSaleAmount = amount,
-                        currencyForSaleError = null,
+                        currencyForSaleValidationError = null,
                         currencyToReceiveAmount = conversionResult.toReceive,
                         fee = conversionResult.fee
                     )
                 }
             }
+        }
+    }
+
+    private fun handleError(throwable: Throwable) {
+        val errorType = when (throwable) {
+            is NoInternetConnectionException -> ErrorType.NO_INTERNET_CONNECTION
+            else -> ErrorType.UNKNOWN
+        }
+        _convertorState.update { state ->
+            state.copy(
+                error = errorType,
+                isLoading = false,
+            )
+        }
+    }
+
+    private fun dismissError() {
+        _convertorState.update { state ->
+            state.copy(error = null)
         }
     }
 }
