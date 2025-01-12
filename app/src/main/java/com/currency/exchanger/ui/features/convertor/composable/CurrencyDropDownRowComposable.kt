@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ fun SellCurrencyDropDown(
             text = stringResource(R.string.sell),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyLarge,
         )
         AmountTextField(
             modifier = Modifier
@@ -89,6 +91,7 @@ fun ReceiveCurrencyDropDown(
             modifier = Modifier.padding(start = 4.dp),
             text = stringResource(R.string.receive),
             color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Start,
         )
         Text(
@@ -96,6 +99,9 @@ fun ReceiveCurrencyDropDown(
                 .weight(1f)
                 .padding(horizontal = 8.dp),
             text = amount?.formatAmountWithDecimals(2)?.let { "+$it" } ?: "",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
             textAlign = TextAlign.End,
             color = AppColor.Profit,
         )

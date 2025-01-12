@@ -76,17 +76,16 @@ fun ConvertorScreen(
             title = stringResource(R.string.currency_convertor),
             modifier = Modifier.fillMaxWidth(),
         )
+        Text(
+            modifier = Modifier.padding(all = 16.dp),
+            text = stringResource(R.string.my_balances).uppercase(),
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        CurrencyBalanceList(
+            modifier = Modifier.fillMaxWidth(),
+            items = state.userBalance.currencyBalanceList,
+        )
         Column(modifier = Modifier.padding(all = 16.dp)) {
-            Text(
-                text = stringResource(R.string.my_balances).uppercase(),
-                color = MaterialTheme.colorScheme.secondary,
-            )
-            CurrencyBalanceList(
-                items = state.userBalance.currencyBalanceList,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            )
             Text(
                 text = stringResource(R.string.currency_exchange).uppercase(),
                 color = MaterialTheme.colorScheme.secondary,
