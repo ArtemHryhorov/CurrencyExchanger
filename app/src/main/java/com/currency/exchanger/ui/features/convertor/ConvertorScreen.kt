@@ -20,12 +20,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.currency.exchanger.R
 import com.currency.exchanger.domain.model.Currency
+import com.currency.exchanger.domain.model.CurrencyBalance
 import com.currency.exchanger.domain.model.UserBalance
 import com.currency.exchanger.ui.common.composable.PrimaryButton
 import com.currency.exchanger.ui.common.composable.TabBar
+import com.currency.exchanger.ui.features.convertor.composable.ConversionCompletedDialog
 import com.currency.exchanger.ui.features.convertor.composable.CurrencyBalanceList
 import com.currency.exchanger.ui.features.convertor.composable.ReceiveCurrencyDropDown
 import com.currency.exchanger.ui.features.convertor.composable.SellCurrencyDropDown
+import com.currency.exchanger.ui.features.convertor.model.ConversionCompleted
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 
 @Composable
@@ -42,6 +45,12 @@ fun ConvertorScreen(
     LaunchedEffect(key1 = lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             onEvent(ConvertorEvent.StartCurrenciesDataSync)
+        }
+    }
+
+    state.conversionCompleted?.let {
+        ConversionCompletedDialog(conversionCompleted = it) {
+            onEvent(ConvertorEvent.ConversionCompleted)
         }
     }
 
@@ -135,6 +144,32 @@ fun ConvertorScreenPreview() {
                 ),
                 currencyForSaleAmount = "150.00",
                 currencyToReceiveAmount = 160.0,
+                conversionCompleted = ConversionCompleted(
+                    sellCurrencyBalance = CurrencyBalance(
+                        amount = 100.0,
+                        currency = Currency(
+                            name = "EUR",
+                            rateToBase = 1.0,
+                            baseCurrencyName = "EUR"
+                        ),
+                    ),
+                    receiveCurrencyBalance = CurrencyBalance(
+                        amount = 120.0,
+                        currency = Currency(
+                            name = "USD",
+                            rateToBase = 1.1,
+                            baseCurrencyName = "EUR"
+                        ),
+                    ),
+                    fee = CurrencyBalance(
+                        amount = 10.0,
+                        currency = Currency(
+                            name = "EUR",
+                            rateToBase = 1.0,
+                            baseCurrencyName = "EUR"
+                        ),
+                    ),
+                )
             ),
             onEvent = {},
         )
