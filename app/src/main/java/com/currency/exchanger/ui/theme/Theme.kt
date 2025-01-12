@@ -5,12 +5,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private object AppColor {
+object AppColor {
     val Primary = Color(0xFF009cdd)
     val OnPrimary = Color(0xFFFFFFFF)
     val OnSecondary = Color(0xFFa0a6ae)
     val OnSurface = Color(0xFF000000)
     val SurfaceVariant = Color(0xFF808080)
+    val Profit = Color(0xFF24C280)
 }
 
 // Add support of the dark theme if needed
@@ -19,7 +20,7 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = AppColor.OnPrimary,
     onSecondary = AppColor.OnSecondary,
     onSurface = AppColor.OnSurface,
-    surfaceVariant = AppColor.SurfaceVariant
+    surfaceVariant = AppColor.SurfaceVariant,
 )
 
 @Composable

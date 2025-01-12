@@ -11,10 +11,9 @@ data class ConvertorState(
     val currencyForSaleAmount: String? = null,
     val currencyForSaleError: ValidationError? = null,
     val currencyToReceive: Currency? = null,
-    val currencyToReceiveAmount: String? = null,
-    val currencyToReceiveError: ValidationError? = null,
+    val currencyToReceiveAmount: Double? = null,
 ) {
 
     val isValidToSubmit: Boolean
-        get() = currencyForSaleError == null && currencyToReceiveError == null
+        get() = currencyForSaleError == null
 }

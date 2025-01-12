@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.currency.exchanger.domain.common.AppRegex
+import com.currency.exchanger.domain.common.regex.AppRegex
 import com.currency.exchanger.ui.common.ValidationError
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
 

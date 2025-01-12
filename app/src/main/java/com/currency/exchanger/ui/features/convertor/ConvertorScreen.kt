@@ -88,13 +88,9 @@ fun ConvertorScreen(
                     currency = currencyToReceive,
                     amount = state.currencyToReceiveAmount,
                     currencies = state.allCurrencies,
-                    error = state.currencyToReceiveError,
                     onCurrencySelected = { currency ->
                         onEvent(ConvertorEvent.OnReceiveCurrencySelected(currency))
                     },
-                    onAmountChanged = { amount ->
-                        onEvent(ConvertorEvent.OnReceiveAmountChanged(amount))
-                    }
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -128,7 +124,7 @@ fun ConvertorScreenPreview() {
                     baseCurrencyName = "EUR"
                 ),
                 currencyForSaleAmount = "150.00",
-                currencyToReceiveAmount = "160.00",
+                currencyToReceiveAmount = 160.0,
             ),
             onEvent = {},
         )
