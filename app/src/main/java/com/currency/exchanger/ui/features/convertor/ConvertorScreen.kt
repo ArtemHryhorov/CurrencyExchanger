@@ -32,7 +32,7 @@ fun ConvertorScreen(
     onEvent: (ConvertorEvent) -> Unit,
 ) {
     LaunchedEffect("Initial loading") {
-        onEvent(ConvertorEvent.LoadUserBalance)
+        onEvent(ConvertorEvent.InitialDataLoading)
     }
 
     Column(

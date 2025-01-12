@@ -1,4 +1,8 @@
 package com.currency.exchanger.domain.usecase
 
-class GetUserBalanceUseCase {
+import com.currency.exchanger.domain.model.UserBalance
+import javax.inject.Inject
+
+class GetUserBalanceUseCase @Inject constructor() {
+    operator fun invoke(): UserBalance = UserBalance.createNew()
 }

@@ -1,9 +1,9 @@
-package com.currency.exchanger.domain.common.convertor
+package com.currency.exchanger.domain.usecase
 
 import com.currency.exchanger.domain.model.Currency
 import javax.inject.Inject
 
-class CurrencyConvertor @Inject constructor() {
+class CalculateConversionUseCase @Inject constructor() {
 
     /**
      * Converts an amount from one currency to another using their exchange rates.
@@ -15,7 +15,7 @@ class CurrencyConvertor @Inject constructor() {
      * @return The converted amount in the `toCurrency`.
      *
      */
-    fun convertCurrencies(
+    operator fun invoke(
         amount: Double,
         fromCurrency: Currency,
         toCurrency: Currency,

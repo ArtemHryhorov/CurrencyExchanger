@@ -12,8 +12,21 @@ data class ConvertorState(
     val currencyForSaleError: ValidationError? = null,
     val currencyToReceive: Currency? = null,
     val currencyToReceiveAmount: Double? = null,
+    val fee: Double = 0.0,
 ) {
 
+    /**
+     * The state could be treated as valid when following conditions are met:
+     * 1. No validation error.
+     * 2. Both sell amd receive amounts calculated.
+     * 3. Sell and receive currencies are different.
+     */
     val isValidToSubmit: Boolean
-        get() = currencyForSaleError == null
+        get() {
+            return currencyForSaleError == null &&
+                    currencyForSaleAmount != null &&
+                    currencyToReceiveAmount != null &&
+                    currencyForSale != currencyToReceive
+
+        }
 }
