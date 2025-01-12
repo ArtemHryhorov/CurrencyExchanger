@@ -3,6 +3,7 @@ package com.currency.exchanger.ui.features.convertor
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.UserBalance
 import com.currency.exchanger.ui.common.ValidationError
+import com.currency.exchanger.ui.features.convertor.model.ConversionCompleted
 
 data class ConvertorState(
     val userBalance: UserBalance = UserBalance(currencyBalanceList = emptyList()),
@@ -13,6 +14,7 @@ data class ConvertorState(
     val currencyToReceive: Currency? = null,
     val currencyToReceiveAmount: Double? = null,
     val fee: Double = 0.0,
+    val conversionCompleted: ConversionCompleted? = null,
 ) {
 
     /**

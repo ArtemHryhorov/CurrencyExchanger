@@ -3,6 +3,7 @@ package com.currency.exchanger.domain.usecase
 import android.util.Log
 import com.currency.exchanger.data.db.dao.UserBalanceDao
 import com.currency.exchanger.data.db.mapper.toEntity
+import com.currency.exchanger.data.preferences.PreferencesManager
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.CurrencyBalance
 import com.currency.exchanger.domain.model.UserBalance
@@ -10,6 +11,7 @@ import javax.inject.Inject
 
 class PerformTransactionUseCase @Inject constructor(
     private val userBalanceDao: UserBalanceDao,
+    private val preferencesManager: PreferencesManager,
 ) {
 
     /**
@@ -96,6 +98,7 @@ class PerformTransactionUseCase @Inject constructor(
         // Transfer fee somewhere if needed
         Log.d("Convertor", "$fee ${updatedSellCurrencyBalance.currency.name} fee applied")
         userBalanceDao.insertUserBalance(UserBalance(updatedBalanceList).toEntity())
+        preferencesManager.incrementCompletedTransactions()
         return UserBalance(updatedBalanceList)
     }
 }
