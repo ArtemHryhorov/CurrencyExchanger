@@ -75,7 +75,10 @@ class ConvertorViewModel @Inject constructor(
                     if (state.currencyForSale == null && state.currencyToReceive == null) {
                         setInitialCurrencies(allCurrencies)
                     }
-                    state.copy(allCurrencies = allCurrencies)
+                    state.copy(
+                        allCurrencies = allCurrencies,
+                        isLoading = false,
+                    )
                 }
                 delay(AppConstants.CURRENCIES_SYNC_DELAY)
             }
