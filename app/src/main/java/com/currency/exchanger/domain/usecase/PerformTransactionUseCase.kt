@@ -1,17 +1,21 @@
 package com.currency.exchanger.domain.usecase
 
 import android.util.Log
+import com.currency.exchanger.data.db.dao.UserBalanceDao
+import com.currency.exchanger.data.db.mapper.toEntity
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.CurrencyBalance
 import com.currency.exchanger.domain.model.UserBalance
 import javax.inject.Inject
 
-class PerformTransactionUseCase @Inject constructor() {
+class PerformTransactionUseCase @Inject constructor(
+    private val userBalanceDao: UserBalanceDao,
+) {
 
     /**
      * This should be Back-End call, but we just changing user balance in local DB.
      */
-    operator fun invoke(
+    suspend operator fun invoke(
         userBalance: UserBalance,
         sellCurrency: Currency,
         sellAmount: Double,
@@ -66,7 +70,7 @@ class PerformTransactionUseCase @Inject constructor() {
         )
     }
 
-    private fun updateUserBalance(
+    private suspend fun updateUserBalance(
         userBalance: UserBalance,
         updatedSellCurrencyBalance: CurrencyBalance,
         updatedReceiveCurrencyBalance: CurrencyBalance,
@@ -91,7 +95,7 @@ class PerformTransactionUseCase @Inject constructor() {
 
         // Transfer fee somewhere if needed
         Log.d("Convertor", "$fee ${updatedSellCurrencyBalance.currency.name} fee applied")
-
+        userBalanceDao.insertUserBalance(UserBalance(updatedBalanceList).toEntity())
         return UserBalance(updatedBalanceList)
     }
 }
