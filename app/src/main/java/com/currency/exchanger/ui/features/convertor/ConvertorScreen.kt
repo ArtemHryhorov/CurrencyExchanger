@@ -12,9 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.currency.exchanger.R
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.UserBalance
@@ -32,7 +35,14 @@ fun ConvertorScreen(
     onEvent: (ConvertorEvent) -> Unit,
 ) {
     LaunchedEffect("Initial loading") {
-        onEvent(ConvertorEvent.InitialDataLoading)
+        onEvent(ConvertorEvent.LoadUserBalance)
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(key1 = lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            onEvent(ConvertorEvent.StartCurrenciesDataSync)
+        }
     }
 
     Column(

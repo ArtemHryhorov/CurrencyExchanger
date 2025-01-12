@@ -1,7 +1,9 @@
 package com.currency.exchanger.ui.features.convertor
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.currency.exchanger.AppConstants
 import com.currency.exchanger.domain.common.extensions.isValidAmount
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.usecase.CalculateConversionUseCase
@@ -10,7 +12,10 @@ import com.currency.exchanger.domain.usecase.GetUserBalanceUseCase
 import com.currency.exchanger.domain.usecase.PerformTransactionUseCase
 import com.currency.exchanger.ui.common.ValidationError
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -28,9 +33,20 @@ class ConvertorViewModel @Inject constructor(
     private val _convertorState = MutableStateFlow(ConvertorState())
     val convertorState = _convertorState.asStateFlow()
 
+    private var syncCurrenciesJob: Job? = null
+    private val coroutineExceptionHandler = CoroutineExceptionHandler{_, throwable ->
+        throwable.printStackTrace()
+    }
+
+    override fun onCleared() {
+        syncCurrenciesJob?.cancel()
+        super.onCleared()
+    }
+
     fun onEvent(event: ConvertorEvent) {
         when (event) {
-            ConvertorEvent.InitialDataLoading -> initialDataLoading()
+            ConvertorEvent.LoadUserBalance -> loadUserBalance()
+            ConvertorEvent.StartCurrenciesDataSync -> startCurrenciesSyncJob()
             ConvertorEvent.Submit -> performCurrenciesConversion()
             is ConvertorEvent.OnReceiveCurrencySelected -> onReceiveCurrencySelected(event.currency)
             is ConvertorEvent.OnSellCurrencySelected -> onSellCurrencySelected(event.currency)
@@ -38,17 +54,41 @@ class ConvertorViewModel @Inject constructor(
         }
     }
 
-    private fun initialDataLoading() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val allCurrencies = getAllCurrencyUseCase()
+    private fun loadUserBalance() {
+        viewModelScope.launch(Dispatchers.IO + coroutineExceptionHandler) {
             _convertorState.update { convertorState ->
-                convertorState.copy(
-                    userBalance = getUserBalanceUseCase(),
-                    currencyForSale = allCurrencies.first(),
-                    currencyToReceive = allCurrencies[1],
-                    allCurrencies = allCurrencies,
-                )
+                convertorState.copy(userBalance = getUserBalanceUseCase())
             }
+        }
+    }
+
+    private fun startCurrenciesSyncJob() {
+        if (syncCurrenciesJob?.isActive == true) return
+        syncCurrenciesJob = viewModelScope.launch(Dispatchers.IO + coroutineExceptionHandler) {
+            while (true) {
+                val allCurrencies = getAllCurrencyUseCase()
+                Log.d("Convertor", "Currencies synchronized. Amount: ${allCurrencies.size}")
+                _convertorState.update { state ->
+                    if (state.currencyForSale == null && state.currencyToReceive == null) {
+                        setInitialCurrencies(allCurrencies)
+                    }
+                    state.copy(allCurrencies = allCurrencies)
+                }
+                delay(AppConstants.CURRENCIES_SYNC_DELAY)
+            }
+        }
+    }
+
+    /*
+        We could remember last "sell" and "receive" currencies for better UX,
+        but for simplification we are using first two currencies from the list.
+    */
+    private fun setInitialCurrencies(allCurrencies: List<Currency>) {
+        _convertorState.update { state ->
+            state.copy(
+                currencyForSale = allCurrencies.first(),
+                currencyToReceive = allCurrencies[1],
+            )
         }
     }
 
