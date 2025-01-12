@@ -2,6 +2,7 @@ package com.currency.exchanger.ui.features.convertor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.currency.exchanger.domain.common.convertor.CurrencyConvertor
 import com.currency.exchanger.domain.common.extensions.isValidAmount
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.domain.model.UserBalance
@@ -18,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ConvertorViewModel @Inject constructor(
     private val getAllCurrencyUseCase: GetAllCurrencyUseCase,
+    private val currencyConvertor: CurrencyConvertor,
 ) : ViewModel() {
 
     private val _convertorState = MutableStateFlow(ConvertorState())
@@ -26,11 +28,10 @@ class ConvertorViewModel @Inject constructor(
     fun onEvent(event: ConvertorEvent) {
         when (event) {
             ConvertorEvent.LoadUserBalance -> loadUserBalance()
-            ConvertorEvent.Submit -> convertCurrencies()
+            ConvertorEvent.Submit -> performCurrenciesConversion()
             is ConvertorEvent.OnReceiveCurrencySelected -> onReceiveCurrencySelected(event.currency)
-            is ConvertorEvent.OnReceiveAmountChanged -> onReceiveAmountChanged(event.amount)
             is ConvertorEvent.OnSellCurrencySelected -> onSellCurrencySelected(event.currency)
-            is ConvertorEvent.OnSellAmountChanged ->onSellAmountChanged(event.amount)
+            is ConvertorEvent.OnSellAmountChanged -> onSellAmountChanged(event.amount)
         }
     }
 
@@ -48,37 +49,87 @@ class ConvertorViewModel @Inject constructor(
         }
     }
 
-    private fun convertCurrencies() {
+    private fun performCurrenciesConversion() {
 
     }
 
     private fun onReceiveCurrencySelected(currency: Currency) {
-        _convertorState.update { convertorState ->
-            convertorState.copy(currencyToReceive = currency)
-        }
-    }
-
-    private fun onReceiveAmountChanged(amount: String) {
-        _convertorState.update { convertorState ->
-            convertorState.copy(currencyToReceiveAmount = amount)
+        _convertorState.update { state ->
+            state.copy(
+                currencyToReceive = currency,
+                currencyToReceiveAmount = currencyConvertor.convertCurrencies(
+                    amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0,
+                    fromCurrency = state.currencyForSale ?: return,
+                    toCurrency = currency,
+                ),
+            )
         }
     }
 
     private fun onSellCurrencySelected(currency: Currency) {
-        _convertorState.update { convertorState ->
-            convertorState.copy(currencyForSale = currency)
+        _convertorState.update { state ->
+            if (state.currencyForSaleError == ValidationError.INCORRECT_AMOUNT) {
+                state.copy(currencyForSale = currency)
+            } else {
+                val currencyBalance = state
+                    .userBalance
+                    .currencyBalanceList
+                    .find { it.currency == currency }
+                val saleAmount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0
+                val isEnoughMoney = currencyBalance?.amount?.let { it >= saleAmount } ?: false
+                if (isEnoughMoney.not()) {
+                    state.copy(
+                        currencyForSale = currency,
+                        currencyForSaleError = ValidationError.INSUFFICIENT_BALANCE
+                    )
+                } else {
+                    state.copy(
+                        currencyForSale = currency,
+                        currencyToReceiveAmount = currencyConvertor.convertCurrencies(
+                            amount = state.currencyForSaleAmount?.toDoubleOrNull() ?: 0.0,
+                            fromCurrency = currency,
+                            toCurrency = state.currencyToReceive ?: return,
+                        ),
+                    )
+                }
+            }
         }
     }
 
     private fun onSellAmountChanged(amount: String) {
         val isNewAmountValid = amount.isValidAmount
-        _convertorState.update { convertorState ->
-            convertorState.copy(
-                currencyForSaleAmount = amount,
-                currencyForSaleError = if (isNewAmountValid.not()) {
-                    ValidationError.INCORRECT_AMOUNT
-                } else null
-            )
+        _convertorState.update { state ->
+            if (isNewAmountValid.not()) {
+                state.copy(
+                    currencyForSaleAmount = amount,
+                    currencyForSaleError = ValidationError.INCORRECT_AMOUNT,
+                    currencyToReceiveAmount = null,
+                )
+            } else {
+                val currencyBalance = state
+                    .userBalance
+                    .currencyBalanceList
+                    .find { it.currency == state.currencyForSale }
+                val saleAmount = amount.toDoubleOrNull() ?: 0.0
+                val isEnoughMoney = currencyBalance?.amount?.let { it >= saleAmount } ?: false
+                if (isEnoughMoney.not()) {
+                    state.copy(
+                        currencyForSaleAmount = amount,
+                        currencyForSaleError = ValidationError.INSUFFICIENT_BALANCE,
+                        currencyToReceiveAmount = null,
+                    )
+                } else {
+                    state.copy(
+                        currencyForSaleAmount = amount,
+                        currencyForSaleError = null,
+                        currencyToReceiveAmount = currencyConvertor.convertCurrencies(
+                            amount = amount.toDouble(),
+                            fromCurrency = state.currencyForSale ?: return,
+                            toCurrency = state.currencyToReceive ?: return,
+                        ),
+                    )
+                }
+            }
         }
     }
 }

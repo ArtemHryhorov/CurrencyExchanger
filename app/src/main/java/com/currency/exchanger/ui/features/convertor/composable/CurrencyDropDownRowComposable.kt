@@ -16,14 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.currency.exchanger.R
+import com.currency.exchanger.domain.common.extensions.formatAmountWithDecimals
 import com.currency.exchanger.domain.model.Currency
 import com.currency.exchanger.ui.common.ValidationError
+import com.currency.exchanger.ui.theme.AppColor
 import com.currency.exchanger.ui.theme.CurrencyExchangerTheme
-
-private enum class CurrencyOperationType {
-    SELL,
-    RECEIVE,
-}
 
 @Composable
 fun SellCurrencyDropDown(
@@ -35,101 +32,74 @@ fun SellCurrencyDropDown(
     onCurrencySelected: (Currency) -> Unit,
     onAmountChanged: (String) -> Unit,
 ) {
-    CurrencyDropDown(
+    Row(
         modifier = modifier,
-        currency = currency,
-        amount = amount,
-        currencyOperationType = CurrencyOperationType.SELL,
-        currencies = currencies,
-        error = error,
-        onCurrencySelected = onCurrencySelected,
-        onAmountChanged = onAmountChanged,
-    )
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            modifier = Modifier.size(48.dp),
+            painter = painterResource(R.drawable.ic_sell_currency),
+            contentDescription = null,
+        )
+        Text(
+            modifier = Modifier.padding(start = 4.dp),
+            text = stringResource(R.string.sell),
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Start,
+        )
+        AmountTextField(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 8.dp),
+            value = amount ?: "",
+            isFocusedInitially = true,
+            error = error,
+            onChanged = onAmountChanged,
+        )
+        Text(
+            modifier = Modifier.padding(start = 8.dp),
+            text = currency.name,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        CurrencyDropdownMenu(
+            currencies = currencies,
+            onSelected = onCurrencySelected,
+        )
+    }
 }
 
 @Composable
 fun ReceiveCurrencyDropDown(
     modifier: Modifier = Modifier,
     currency: Currency,
-    amount: String?,
+    amount: Double?,
     currencies: List<Currency>,
-    error: ValidationError? = null,
     onCurrencySelected: (Currency) -> Unit,
-    onAmountChanged: (String) -> Unit,
-) {
-    CurrencyDropDown(
-        modifier = modifier,
-        currency = currency,
-        amount = amount,
-        currencyOperationType = CurrencyOperationType.RECEIVE,
-        currencies = currencies,
-        error = error,
-        onCurrencySelected = onCurrencySelected,
-        onAmountChanged = onAmountChanged,
-    )
-}
-
-@Composable
-private fun CurrencyDropDown(
-    modifier: Modifier = Modifier,
-    currency: Currency,
-    amount: String?,
-    currencyOperationType: CurrencyOperationType,
-    currencies: List<Currency>,
-    error: ValidationError? = null,
-    onCurrencySelected: (Currency) -> Unit,
-    onAmountChanged: (String) -> Unit,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (currencyOperationType == CurrencyOperationType.SELL) {
-            Image(
-                modifier = Modifier.size(48.dp),
-                painter = painterResource(R.drawable.ic_sell_currency),
-                contentDescription = null,
-            )
-        } else {
-            Image(
-                modifier = Modifier.size(48.dp),
-                painter = painterResource(R.drawable.ic_receive_currency),
-                contentDescription = null,
-            )
-        }
+        Image(
+            modifier = Modifier.size(48.dp),
+            painter = painterResource(R.drawable.ic_receive_currency),
+            contentDescription = null,
+        )
         Text(
             modifier = Modifier.padding(start = 4.dp),
-            text = if (currencyOperationType == CurrencyOperationType.SELL) {
-                stringResource(R.string.sell)
-            } else {
-                stringResource(R.string.receive)
-            },
+            text = stringResource(R.string.receive),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Start,
         )
-        if (currencyOperationType == CurrencyOperationType.SELL) {
-            AmountTextField(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                value = amount ?: "",
-                isFocusedInitially = true,
-                error = error,
-                onChanged = onAmountChanged,
-            )
-        } else {
-            // TODO("Add color customization")
-            AmountTextField(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                value = amount ?: "",
-                error = error,
-                onChanged = onAmountChanged,
-            )
-        }
         Text(
-            modifier = Modifier.padding(start = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp),
+            text = amount?.formatAmountWithDecimals(2)?.let { "+$it" } ?: "",
+            textAlign = TextAlign.End,
+            color = AppColor.Profit,
+        )
+        Text(
             text = currency.name,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -158,14 +128,13 @@ fun SellCurrencyDropDownPreview() {
             )
             ReceiveCurrencyDropDown(
                 currency = Currency(
-                    name = "EUR",
+                    name = "USD",
                     rateToBase = 1.0,
                     baseCurrencyName = "EUR",
                 ),
-                amount = "100.0",
+                amount = 150.0,
                 currencies = emptyList(),
                 onCurrencySelected = {},
-                onAmountChanged = {},
             )
         }
     }
