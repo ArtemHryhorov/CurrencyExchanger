@@ -1,4 +1,4 @@
-package com.currency.exchanger.data.model
+package com.currency.exchanger.data.api.model
 
 data class CurrencyListResponse(
     val base: String,

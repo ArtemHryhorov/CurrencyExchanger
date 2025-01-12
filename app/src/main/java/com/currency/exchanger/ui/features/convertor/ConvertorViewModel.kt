@@ -117,6 +117,7 @@ class ConvertorViewModel @Inject constructor(
                                 toCurrency = state.currencyToReceive ?: return,
                             )
                         } else state.currencyToReceiveAmount,
+                        currencyForSaleError = null,
                     )
                 }
             }
