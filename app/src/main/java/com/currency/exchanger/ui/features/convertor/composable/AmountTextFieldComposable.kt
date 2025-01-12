@@ -13,6 +13,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,9 +43,10 @@ fun AmountTextField(
             } else onChanged(it)
         },
         modifier = modifier.focusRequester(focusRequester),
-        textStyle = MaterialTheme.typography.bodyMedium.copy(
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.End,
+            fontWeight = FontWeight.SemiBold,
         ),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Number,
