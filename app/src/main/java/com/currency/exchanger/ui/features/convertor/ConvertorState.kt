@@ -15,6 +15,7 @@ data class ConvertorState(
     val currencyToReceiveAmount: Double? = null,
     val fee: Double = 0.0,
     val conversionCompleted: ConversionCompleted? = null,
+    val isLoading: Boolean = true,
 ) {
 
     /**

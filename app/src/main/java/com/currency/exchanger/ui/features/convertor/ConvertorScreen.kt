@@ -1,16 +1,19 @@
 package com.currency.exchanger.ui.features.convertor
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -37,17 +40,23 @@ fun ConvertorScreen(
     state: ConvertorState,
     onEvent: (ConvertorEvent) -> Unit,
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect("Initial loading") {
         onEvent(ConvertorEvent.LoadUserBalance)
     }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(key1 = lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             onEvent(ConvertorEvent.StartCurrenciesDataSync)
         }
     }
 
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+            content = { CircularProgressIndicator() }
+        )
+    }
     state.conversionCompleted?.let {
         ConversionCompletedDialog(conversionCompleted = it) {
             onEvent(ConvertorEvent.ConversionCompleted)
@@ -144,6 +153,59 @@ fun ConvertorScreenPreview() {
                 ),
                 currencyForSaleAmount = "150.00",
                 currencyToReceiveAmount = 160.0,
+                conversionCompleted = null,
+                isLoading = false,
+            ),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ConvertorScreenPreviewWithLoader() {
+    CurrencyExchangerTheme {
+        ConvertorScreen(
+            state = ConvertorState(
+                userBalance = UserBalance.createNew(),
+                currencyForSale = Currency(
+                    name = "EUR",
+                    rateToBase = 1.0,
+                    baseCurrencyName = "EUR"
+                ),
+                currencyToReceive = Currency(
+                    name = "USD",
+                    rateToBase = 1.1,
+                    baseCurrencyName = "EUR"
+                ),
+                currencyForSaleAmount = "150.00",
+                currencyToReceiveAmount = 160.0,
+                conversionCompleted = null,
+            ),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ConvertorScreenPreviewWithDialog() {
+    CurrencyExchangerTheme {
+        ConvertorScreen(
+            state = ConvertorState(
+                userBalance = UserBalance.createNew(),
+                currencyForSale = Currency(
+                    name = "EUR",
+                    rateToBase = 1.0,
+                    baseCurrencyName = "EUR"
+                ),
+                currencyToReceive = Currency(
+                    name = "USD",
+                    rateToBase = 1.1,
+                    baseCurrencyName = "EUR"
+                ),
+                currencyForSaleAmount = "150.00",
+                currencyToReceiveAmount = 160.0,
                 conversionCompleted = ConversionCompleted(
                     sellCurrencyBalance = CurrencyBalance(
                         amount = 100.0,
@@ -169,7 +231,8 @@ fun ConvertorScreenPreview() {
                             baseCurrencyName = "EUR"
                         ),
                     ),
-                )
+                ),
+                isLoading = false,
             ),
             onEvent = {},
         )
