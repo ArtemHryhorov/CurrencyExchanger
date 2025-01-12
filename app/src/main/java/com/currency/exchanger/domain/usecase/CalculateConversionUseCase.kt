@@ -1,13 +1,12 @@
 package com.currency.exchanger.domain.usecase
 
 import com.currency.exchanger.AppConstants
-import com.currency.exchanger.data.preferences.PreferencesManager
 import com.currency.exchanger.domain.model.ConversionResult
 import com.currency.exchanger.domain.model.Currency
 import javax.inject.Inject
 
 class CalculateConversionUseCase @Inject constructor(
-    private val preferencesManager: PreferencesManager,
+    private val shouldFeeBeAppliedUseCase: ShouldFeeBeAppliedUseCase,
 ) {
 
     /**
@@ -33,8 +32,7 @@ class CalculateConversionUseCase @Inject constructor(
         toCurrency: Currency,
     ): ConversionResult {
         val convertedAmount = (toCurrency.rateToBase / fromCurrency.rateToBase) * amount
-        val shouldFeeBeApplied = preferencesManager.getCompletedTransactions() > 5
-        val fee = if (shouldFeeBeApplied) {
+        val fee = if (shouldFeeBeAppliedUseCase()) {
             amount * (AppConstants.TRANSACTION_FEE_PERCENT / 100)
         } else 0.0
         return ConversionResult(
